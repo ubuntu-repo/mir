@@ -22,6 +22,7 @@
 
 #include "null_console_services.h"
 #include "linux_virtual_terminal.h"
+#include "logind_console_services.h"
 
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -97,18 +98,27 @@ std::shared_ptr<mir::ConsoleServices> mir::DefaultServerConfiguration::the_conso
         {
             try
             {
-                auto const vt_services = std::make_shared<mir::LinuxVirtualTerminal>(
-                    std::make_unique<RealVTFileOperations>(),
-                    std::make_unique<RealPosixProcessOperations>(),
-                    the_options()->get<int>(options::vt_option_name),
-                    the_display_report());
-                mir::log_debug("Using Linux VT subsystem for session management");
-                return vt_services;
+                auto const logind_services = std::make_shared<mir::LogindConsoleServices>();
+                mir::log_debug("Using logind for session management");
+                return logind_services;
             }
             catch (...)
             {
-                mir::log_debug("No session management supported");
-                return std::make_shared<mir::NullConsoleServices>();
+                try
+                {
+                    auto const vt_services = std::make_shared<mir::LinuxVirtualTerminal>(
+                        std::make_unique<RealVTFileOperations>(),
+                        std::make_unique<RealPosixProcessOperations>(),
+                        the_options()->get<int>(options::vt_option_name),
+                        the_display_report());
+                    mir::log_debug("Using Linux VT subsystem for session management");
+                    return vt_services;
+                }
+                catch (...)
+                {
+                    mir::log_debug("No session management supported");
+                    return std::make_shared<mir::NullConsoleServices>();
+                }
             }
         });
 }
