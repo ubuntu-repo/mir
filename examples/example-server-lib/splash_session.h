@@ -27,23 +27,11 @@ class SplashSession
 {
 public:
     struct Self;
-    SplashSession(std::shared_ptr<Self> const self);
-
-    auto session() const -> std::shared_ptr<mir::scene::Session>;
-
-private:
-    std::shared_ptr<Self> const self;
-};
-
-class SplashSession::Self
-{
-public:
+    SplashSession() = default;
+    SplashSession(SplashSession const&) = delete;
+    virtual ~SplashSession() = default;
+    SplashSession& operator=(SplashSession const&) = delete;
     virtual auto session() const -> std::shared_ptr<mir::scene::Session> = 0;
-
-    Self() = default;
-    virtual ~Self() = default;
-    Self(Self const&) = delete;
-    Self& operator=(Self const&) = delete;
 };
 
 #endif //MIR_SPLASH_SESSION_H

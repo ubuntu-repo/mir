@@ -18,12 +18,3 @@
 
 #include "splash_session.h"
 
-SplashSession::SplashSession(std::shared_ptr<SplashSession::Self> self) :
-    self{std::move(self)}
-{
-}
-
-auto SplashSession::session() const -> std::shared_ptr<mir::scene::Session>
-{
-    return self->session();
-}
