@@ -207,14 +207,14 @@ miral::WindowSpecification::Self::Self(mir::scene::SurfaceCreationParameters con
     max_height(params.max_height),
     width_inc(params.width_inc),
     height_inc(params.height_inc),
-    min_aspect(),
-    max_aspect(),
+    min_aspect(), // TODO
+    max_aspect(), // TODO
     streams(params.streams),
     parent(params.parent),
     input_shape(params.input_shape),
     input_mode(static_cast<InputReceptionMode>(params.input_mode)),
-    shell_chrome(params.shell_chrome)
-    ,confine_pointer(params.confine_pointer)
+    shell_chrome(params.shell_chrome),
+    confine_pointer(params.confine_pointer)
 {
     if (params.aux_rect_placement_offset_x.is_set() && params.aux_rect_placement_offset_y.is_set())
         aux_rect_placement_offset = Displacement{params.aux_rect_placement_offset_x.value(), params.aux_rect_placement_offset_y.value()};

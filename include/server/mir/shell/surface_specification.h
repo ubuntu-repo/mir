@@ -27,6 +27,7 @@
 #include "mir/geometry/displacement.h"
 #include "mir/graphics/buffer_properties.h"
 #include "mir/graphics/display_configuration.h"
+#include "mir/input/input_reception_mode.h"
 
 #include <string>
 #include <memory>
@@ -97,7 +98,45 @@ struct SurfaceSpecification
     optional_value<MirShellChrome> shell_chrome;
     optional_value<MirPointerConfinementState> confine_pointer;
     optional_value<std::shared_ptr<graphics::CursorImage>> cursor_image;
-    optional_value<StreamCursor> stream_cursor; 
+    optional_value<StreamCursor> stream_cursor;
+};
+
+struct SurfaceParameters
+{
+    struct AspectRatio { unsigned width; unsigned height; };
+
+    optional_value<geometry::Point> top_left;
+    optional_value<geometry::Size> size;
+    optional_value<std::string> name;
+    optional_value<int> output_id;
+    optional_value<MirWindowType> type;
+    optional_value<MirWindowState> state;
+    optional_value<MirOrientationMode> preferred_orientation;
+    optional_value<geometry::Rectangle> aux_rect;
+    optional_value<MirPlacementHints> placement_hints;
+    optional_value<MirPlacementGravity> surface_placement_gravity;
+    optional_value<MirPlacementGravity> aux_rect_placement_gravity;
+    optional_value<geometry::Displacement> aux_rect_placement_offset;
+    optional_value<geometry::Width> min_width;
+    optional_value<geometry::Height> min_height;
+    optional_value<geometry::Width> max_width;
+    optional_value<geometry::Height> max_height;
+    optional_value<geometry::DeltaX> width_inc;
+    optional_value<geometry::DeltaY> height_inc;
+    optional_value<AspectRatio> min_aspect;
+    optional_value<AspectRatio> max_aspect;
+    optional_value<std::weak_ptr<mir::scene::Surface>> parent;
+    optional_value<std::vector<geometry::Rectangle>> input_shape;
+    optional_value<input::InputReceptionMode> input_mode;
+    optional_value<MirShellChrome> shell_chrome;
+    optional_value<MirPointerConfinementState> confine_pointer;
+    optional_value<MirPixelFormat> pixel_format;
+    optional_value<graphics::BufferUsage> buffer_usage;
+    optional_value<frontend::SurfaceId> parent_id;
+    optional_value<MirEdgeAttachment> edge_attachment;
+    optional_value<std::vector<StreamSpecification>> streams;
+    optional_value<std::shared_ptr<graphics::CursorImage>> cursor_image;
+    optional_value<StreamCursor> stream_cursor;
 };
 }
 }
