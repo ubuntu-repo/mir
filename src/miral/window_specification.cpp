@@ -21,6 +21,7 @@
 #include <mir/shell/surface_specification.h>
 #include <mir/scene/surface_creation_parameters.h>
 
+/*
 struct miral::WindowSpecification::Self
 {
     Self() = default;
@@ -290,6 +291,252 @@ void miral::WindowSpecification::Self::update(mir::scene::SurfaceCreationParamet
         params.aux_rect_placement_offset_x = offset.dx.as_int();
         params.aux_rect_placement_offset_y = offset.dy.as_int();
     }
+}*/
+
+struct miral::WindowSpecification::Self: public mir::shell::SurfaceParameters
+{
+    Self() = default;
+    Self(mir::shell::SurfaceSpecification const& spec): mir::shell::SurfaceParameters(spec) {}
+    Self(mir::scene::SurfaceCreationParameters const& params): mir::shell::SurfaceParameters(params) {}
+
+    mir::optional_value<std::shared_ptr<void>> userdata;
+};
+
+
+mir::shell::SurfaceParameters::SurfaceParameters(mir::scene::SurfaceCreationParameters const& params)
+{
+    top_left = params.top_left;
+    size = params.size;
+    name = params.name;
+    output_id = params.output_id.as_value();
+    type = params.type;
+    state = params.state;
+    preferred_orientation = params.preferred_orientation;
+    aux_rect = params.aux_rect;
+    placement_hints = params.placement_hints;
+    surface_placement_gravity = params.surface_placement_gravity;
+    aux_rect_placement_gravity = params.aux_rect_placement_gravity;
+    if (params.aux_rect_placement_offset_x.is_set() && params.aux_rect_placement_offset_y.is_set())
+        aux_rect_placement_offset = geometry::Displacement{params.aux_rect_placement_offset_x.value(),
+                                                           params.aux_rect_placement_offset_y.value()};
+    min_width = params.min_width;
+    min_height = params.min_height;
+    max_width = params.max_width;
+    max_height = params.max_height;
+    width_inc = params.width_inc;
+    height_inc = params.height_inc;
+    min_aspect = params.min_aspect;
+    max_aspect = params.max_aspect;
+    parent = params.parent;
+    input_shape = params.input_shape;
+    input_mode = params.input_mode;
+    shell_chrome = params.shell_chrome;
+    confine_pointer = params.confine_pointer;
+    pixel_format = params.pixel_format;
+    buffer_usage = params.buffer_usage;
+    parent_id = params.parent_id;
+    content_id = params.content_id;
+    edge_attachment = params.edge_attachment;
+    streams = params.streams;
+
+    if (params.edge_attachment.is_set() && !placement_hints.is_set())
+    {
+        switch (params.edge_attachment.value())
+        {
+        case mir_edge_attachment_vertical:
+            surface_placement_gravity = mir_placement_gravity_northwest;
+            aux_rect_placement_gravity = mir_placement_gravity_northeast;
+            placement_hints = mir_placement_hints_flip_x;
+            break;
+
+        case mir_edge_attachment_horizontal:
+            surface_placement_gravity = mir_placement_gravity_northwest;
+            aux_rect_placement_gravity = mir_placement_gravity_southwest;
+            placement_hints = mir_placement_hints_flip_y;
+            break;
+
+        case mir_edge_attachment_any:
+            surface_placement_gravity = mir_placement_gravity_northwest;
+            aux_rect_placement_gravity = mir_placement_gravity_northeast;
+            placement_hints = mir_placement_hints_flip_any;
+            break;
+        }
+    }
+}
+
+mir::shell::SurfaceParameters::SurfaceParameters(mir::shell::SurfaceSpecification const& params)
+{
+    if (params.width.is_set() && params.height.is_set())
+        size = geometry::Size{params.width.value(), params.height.value()};
+    name = params.name;
+    output_id = params.output_id;
+    type = params.type;
+    state = params.state;
+    preferred_orientation = params.preferred_orientation;
+    aux_rect = params.aux_rect;
+    placement_hints = params.placement_hints;
+    surface_placement_gravity = params.surface_placement_gravity;
+    aux_rect_placement_gravity = params.aux_rect_placement_gravity;
+    if (params.aux_rect_placement_offset_x.is_set() && params.aux_rect_placement_offset_y.is_set())
+        aux_rect_placement_offset = geometry::Displacement{params.aux_rect_placement_offset_x.value(),
+                                                           params.aux_rect_placement_offset_y.value()};
+    min_width = params.min_width;
+    min_height = params.min_height;
+    max_width = params.max_width;
+    max_height = params.max_height;
+    width_inc = params.width_inc;
+    height_inc = params.height_inc;
+    min_aspect = params.min_aspect;
+    max_aspect = params.max_aspect;
+    parent = params.parent;
+    input_shape = params.input_shape;
+    shell_chrome = params.shell_chrome;
+    confine_pointer = params.confine_pointer;
+    pixel_format = params.pixel_format;
+    buffer_usage = params.buffer_usage;
+    parent_id = params.parent_id;
+    edge_attachment = params.edge_attachment;
+    streams = params.streams;
+    cursor_image = params.cursor_image;
+    stream_cursor = params.stream_cursor;
+
+    if (params.edge_attachment.is_set() && !placement_hints.is_set())
+    {
+        switch (params.edge_attachment.value())
+        {
+        case mir_edge_attachment_vertical:
+            surface_placement_gravity = mir_placement_gravity_northwest;
+            aux_rect_placement_gravity = mir_placement_gravity_northeast;
+            placement_hints = mir_placement_hints_flip_x;
+            break;
+
+        case mir_edge_attachment_horizontal:
+            surface_placement_gravity = mir_placement_gravity_northwest;
+            aux_rect_placement_gravity = mir_placement_gravity_southwest;
+            placement_hints = mir_placement_hints_flip_y;
+            break;
+
+        case mir_edge_attachment_any:
+            surface_placement_gravity = mir_placement_gravity_northwest;
+            aux_rect_placement_gravity = mir_placement_gravity_northeast;
+            placement_hints = MirPlacementHints(mir_placement_hints_flip_any | mir_placement_hints_antipodes);
+            break;
+        }
+    }
+}
+
+void mir::shell::SurfaceParameters::update_from(mir::scene::SurfaceCreationParameters const& params)
+{
+    top_left = params.top_left;
+    size = params.size;
+    name = params.name;
+    parent = params.parent;
+    pixel_format = params.pixel_format;
+    buffer_usage = params.buffer_usage;
+    input_mode = params.input_mode;
+
+    output_id = params.output_id.as_value();
+    if (params.type.is_set())
+        type = params.type;
+    if (params.state.is_set())
+        state = params.state;
+    if (params.preferred_orientation.is_set())
+        preferred_orientation = params.preferred_orientation;
+    if (params.aux_rect.is_set())
+        aux_rect = params.aux_rect;
+    if (params.placement_hints.is_set())
+        placement_hints = params.placement_hints;
+    if (params.surface_placement_gravity.is_set())
+        surface_placement_gravity = params.surface_placement_gravity;
+    if (params.aux_rect_placement_gravity.is_set())
+        aux_rect_placement_gravity = params.aux_rect_placement_gravity;
+    if (params.aux_rect_placement_offset_x.is_set() && params.aux_rect_placement_offset_y.is_set())
+        aux_rect_placement_offset = geometry::Displacement{params.aux_rect_placement_offset_x.value(),
+                                                           params.aux_rect_placement_offset_y.value()};
+    if (params.min_width.is_set())
+        min_width = params.min_width;
+    if (params.min_height.is_set())
+        min_height = params.min_height;
+    if (params.max_width.is_set())
+        max_width = params.max_width;
+    if (params.max_height.is_set())
+        max_height = params.max_height;
+    if (params.width_inc.is_set())
+        width_inc = params.width_inc;
+    if (params.height_inc.is_set())
+        height_inc = params.height_inc;
+    if (params.min_aspect.is_set())
+        min_aspect = params.min_aspect;
+    if (params.max_aspect.is_set())
+        max_aspect = params.max_aspect;
+    if (params.input_shape.is_set())
+        input_shape = params.input_shape;
+    if (params.shell_chrome.is_set())
+        shell_chrome = params.shell_chrome;
+    if (params.confine_pointer.is_set())
+        confine_pointer = params.confine_pointer;
+    if (params.parent_id.is_set())
+        parent_id = params.parent_id;
+    if (params.content_id.is_set())
+        content_id = params.content_id;
+    if (params.edge_attachment.is_set())
+        edge_attachment = params.edge_attachment;
+    if (params.streams.is_set())
+        streams = params.streams;
+}
+
+namespace
+{
+
+auto to_miral_type(mir::optional_value<mir::input::InputReceptionMode>& input_mode)
+    -> mir::optional_value<miral::WindowSpecification::InputReceptionMode>&
+{
+    static_assert(
+        sizeof(mir::optional_value<miral::WindowSpecification::InputReceptionMode>&) ==
+        sizeof(mir::optional_value<mir::input::InputReceptionMode>&),
+        "enums should be identical");
+
+    static_assert(
+        std::is_same<
+            std::underlying_type<miral::WindowSpecification::InputReceptionMode>::type,
+            std::underlying_type<mir::input::InputReceptionMode>::type>::value,
+        "enums should be identical");
+
+    static_assert(
+        static_cast<std::underlying_type<miral::WindowSpecification::InputReceptionMode>::type>(
+                    miral::WindowSpecification::InputReceptionMode::normal) ==
+        static_cast<std::underlying_type<mir::input::InputReceptionMode>::type>(
+                    mir::input::InputReceptionMode::normal),
+        "enums should be identical");
+
+    static_assert(
+        static_cast<std::underlying_type<miral::WindowSpecification::InputReceptionMode>::type>(
+                    miral::WindowSpecification::InputReceptionMode::receives_all_input) ==
+        static_cast<std::underlying_type<mir::input::InputReceptionMode>::type>(
+                    mir::input::InputReceptionMode::receives_all_input),
+        "enums should be identical");
+
+    return *reinterpret_cast<mir::optional_value<miral::WindowSpecification::InputReceptionMode>*>(&input_mode);
+}
+
+auto to_miral_type(mir::optional_value<mir::shell::SurfaceAspectRatio>& aspect_ratio)
+    -> mir::optional_value<miral::WindowSpecification::AspectRatio>&
+{
+    static_assert(
+        sizeof(mir::optional_value<mir::shell::SurfaceAspectRatio>&) == sizeof(mir::optional_value<miral::WindowSpecification::AspectRatio>&),
+        "structs should be identical");
+
+    static_assert(
+        offsetof(mir::shell::SurfaceAspectRatio, mir::shell::SurfaceAspectRatio::width) == offsetof(miral::WindowSpecification::AspectRatio, miral::WindowSpecification::AspectRatio::width),
+        "structs should be identical");
+
+    static_assert(
+        offsetof(mir::shell::SurfaceAspectRatio, mir::shell::SurfaceAspectRatio::height) == offsetof(miral::WindowSpecification::AspectRatio, miral::WindowSpecification::AspectRatio::height),
+        "structs should be identical");
+
+    return *reinterpret_cast<mir::optional_value<miral::WindowSpecification::AspectRatio>*>(&aspect_ratio);
+}
+
 }
 
 miral::WindowSpecification::WindowSpecification() :
@@ -322,7 +569,7 @@ miral::WindowSpecification::~WindowSpecification() = default;
 
 void miral::WindowSpecification::update(mir::scene::SurfaceCreationParameters& params) const
 {
-    self->update(params);
+    self->update_from(params);
 }
 
 auto miral::WindowSpecification::top_left() const -> mir::optional_value<Point> const&
@@ -372,7 +619,7 @@ auto miral::WindowSpecification::placement_hints() const -> mir::optional_value<
 
 auto miral::WindowSpecification::window_placement_gravity() const -> mir::optional_value<MirPlacementGravity> const&
 {
-    return self->window_placement_gravity;
+    return self->surface_placement_gravity;
 }
 
 auto miral::WindowSpecification::aux_rect_placement_gravity() const -> mir::optional_value<MirPlacementGravity> const&
@@ -417,12 +664,12 @@ auto miral::WindowSpecification::height_inc() const -> mir::optional_value<Delta
 
 auto miral::WindowSpecification::min_aspect() const -> mir::optional_value<AspectRatio> const&
 {
-    return self->min_aspect;
+    return to_miral_type(self->min_aspect);
 }
 
 auto miral::WindowSpecification::max_aspect() const -> mir::optional_value<AspectRatio> const&
 {
-    return self->max_aspect;
+    return to_miral_type(self->max_aspect);
 }
 
 auto miral::WindowSpecification::parent() const -> mir::optional_value<std::weak_ptr<mir::scene::Surface>> const&
@@ -437,7 +684,7 @@ auto miral::WindowSpecification::input_shape() const -> mir::optional_value<std:
 
 auto miral::WindowSpecification::input_mode() const -> mir::optional_value<InputReceptionMode> const&
 {
-    return self->input_mode;
+    return to_miral_type(self->input_mode);
 }
 
 auto miral::WindowSpecification::shell_chrome() const -> mir::optional_value<MirShellChrome> const&
@@ -502,7 +749,7 @@ auto miral::WindowSpecification::placement_hints() -> mir::optional_value<MirPla
 
 auto miral::WindowSpecification::window_placement_gravity() -> mir::optional_value<MirPlacementGravity>&
 {
-    return self->window_placement_gravity;
+    return self->surface_placement_gravity;
 }
 
 auto miral::WindowSpecification::aux_rect_placement_gravity() -> mir::optional_value<MirPlacementGravity>&
@@ -547,12 +794,12 @@ auto miral::WindowSpecification::height_inc() -> mir::optional_value<DeltaY>&
 
 auto miral::WindowSpecification::min_aspect() -> mir::optional_value<AspectRatio>&
 {
-    return self->min_aspect;
+    return to_miral_type(self->min_aspect);
 }
 
 auto miral::WindowSpecification::max_aspect() -> mir::optional_value<AspectRatio>&
 {
-    return self->max_aspect;
+    return to_miral_type(self->max_aspect);
 }
 
 auto miral::WindowSpecification::parent() -> mir::optional_value<std::weak_ptr<mir::scene::Surface>>&
@@ -567,7 +814,7 @@ auto miral::WindowSpecification::input_shape() -> mir::optional_value<std::vecto
 
 auto miral::WindowSpecification::input_mode() -> mir::optional_value<InputReceptionMode>&
 {
-    return self->input_mode;
+    return to_miral_type(self->input_mode);
 }
 
 auto miral::WindowSpecification::shell_chrome() -> mir::optional_value<MirShellChrome>&

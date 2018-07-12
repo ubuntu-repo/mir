@@ -31,11 +31,12 @@
 
 #include <string>
 #include <memory>
+#include <experimental/optional>
 
 namespace mir
 {
 namespace graphics { class CursorImage; }
-namespace scene { class Surface; }
+namespace scene { class Surface; struct SurfaceCreationParameters; }
 
 namespace shell
 {
@@ -103,7 +104,10 @@ struct SurfaceSpecification
 
 struct SurfaceParameters
 {
-    struct AspectRatio { unsigned width; unsigned height; };
+    SurfaceParameters() = default;
+    SurfaceParameters(mir::scene::SurfaceCreationParameters const& params);
+    SurfaceParameters(SurfaceSpecification const& params);
+    void update_from(mir::scene::SurfaceCreationParameters const& params);
 
     optional_value<geometry::Point> top_left;
     optional_value<geometry::Size> size;
@@ -123,8 +127,8 @@ struct SurfaceParameters
     optional_value<geometry::Height> max_height;
     optional_value<geometry::DeltaX> width_inc;
     optional_value<geometry::DeltaY> height_inc;
-    optional_value<AspectRatio> min_aspect;
-    optional_value<AspectRatio> max_aspect;
+    optional_value<SurfaceAspectRatio> min_aspect;
+    optional_value<SurfaceAspectRatio> max_aspect;
     optional_value<std::weak_ptr<mir::scene::Surface>> parent;
     optional_value<std::vector<geometry::Rectangle>> input_shape;
     optional_value<input::InputReceptionMode> input_mode;
@@ -133,6 +137,7 @@ struct SurfaceParameters
     optional_value<MirPixelFormat> pixel_format;
     optional_value<graphics::BufferUsage> buffer_usage;
     optional_value<frontend::SurfaceId> parent_id;
+    optional_value<frontend::BufferStreamId> content_id;
     optional_value<MirEdgeAttachment> edge_attachment;
     optional_value<std::vector<StreamSpecification>> streams;
     optional_value<std::shared_ptr<graphics::CursorImage>> cursor_image;
