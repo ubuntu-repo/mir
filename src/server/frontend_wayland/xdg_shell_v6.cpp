@@ -66,7 +66,6 @@ public:
     void clear_next_commit_action();
 
     struct wl_resource* const parent;
-    std::shared_ptr<Shell> const shell;
     std::function<void()> next_commit_action{[]{}};
     std::function<void(geometry::Size const& new_size, MirWindowState state, bool active)> notify_resize =
         [](auto, auto, auto){};
@@ -84,8 +83,7 @@ public:
 class XdgToplevelV6 : public wayland::XdgToplevelV6
 {
 public:
-    XdgToplevelV6(struct wl_client* client, struct wl_resource* parent, uint32_t id,
-                  std::shared_ptr<frontend::Shell> const& shell, XdgSurfaceV6* self);
+    XdgToplevelV6(struct wl_client* client, struct wl_resource* parent, uint32_t id, XdgSurfaceV6* self);
 
     void destroy() override;
     void set_parent(std::experimental::optional<struct wl_resource*> const& parent) override;
@@ -105,7 +103,6 @@ public:
 private:
     static XdgToplevelV6* from(wl_resource* surface);
 
-    std::shared_ptr<frontend::Shell> const shell;
     XdgSurfaceV6* const self;
 };
 
@@ -176,8 +173,7 @@ mf::XdgSurfaceV6::XdgSurfaceV6(wl_client* client, wl_resource* parent, uint32_t 
                                std::shared_ptr<mf::Shell> const& shell, WlSeat& seat, OutputManager* output_manager)
     : wayland::XdgSurfaceV6(client, parent, id),
       WindowWlSurfaceRole{&seat, client, surface, shell, output_manager},
-      parent{parent},
-      shell{shell}
+      parent{parent}
 {
 }
 
@@ -188,7 +184,7 @@ void mf::XdgSurfaceV6::destroy()
 
 void mf::XdgSurfaceV6::get_toplevel(uint32_t id)
 {
-    new XdgToplevelV6{wayland::XdgSurfaceV6::client, parent, id, shell, this};
+    new XdgToplevelV6{wayland::XdgSurfaceV6::client, parent, id, this};
     become_surface_role();
 }
 
@@ -328,10 +324,8 @@ void mf::XdgPopupV6::destroy()
 
 // XdgToplevelV6
 
-mf::XdgToplevelV6::XdgToplevelV6(struct wl_client* client, struct wl_resource* parent, uint32_t id,
-                                 std::shared_ptr<mf::Shell> const& shell, XdgSurfaceV6* self)
+mf::XdgToplevelV6::XdgToplevelV6(struct wl_client* client, struct wl_resource* parent, uint32_t id, XdgSurfaceV6* self)
     : wayland::XdgToplevelV6(client, parent, id),
-      shell{shell},
       self{self}
 {
     self->set_notify_resize(
