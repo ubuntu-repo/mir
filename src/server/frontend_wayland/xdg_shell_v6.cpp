@@ -60,15 +60,10 @@ public:
 
     void handle_resize(const geometry::Size & new_size) override;
 
-    void set_parent(optional_value<SurfaceId> parent_id);
-    void set_title(std::string const& title);
-    void move(struct wl_resource* seat, uint32_t serial);
     void resize(struct wl_resource* /*seat*/, uint32_t /*serial*/, uint32_t edges);
     void set_notify_resize(std::function<void(geometry::Size const& new_size, MirWindowState state, bool active)> notify_resize);
     void set_next_commit_action(std::function<void()> action);
     void clear_next_commit_action();
-    void set_max_size(int32_t width, int32_t height);
-    void set_min_size(int32_t width, int32_t height);
 
     using WindowWlSurfaceRole::client;
 
@@ -229,17 +224,6 @@ void mf::XdgSurfaceV6::ack_configure(uint32_t serial)
     // TODO
 }
 
-
-void mf::XdgSurfaceV6::set_title(std::string const& title)
-{
-    WindowWlSurfaceRole::set_title(title);
-}
-
-void mf::XdgSurfaceV6::move(struct wl_resource* /*seat*/, uint32_t /*serial*/)
-{
-    WindowWlSurfaceRole::initiate_interactive_move();
-}
-
 void mf::XdgSurfaceV6::resize(struct wl_resource* /*seat*/, uint32_t /*serial*/, uint32_t edges)
 {
     MirResizeEdge edge = mir_resize_edge_none;
@@ -287,21 +271,6 @@ void mf::XdgSurfaceV6::resize(struct wl_resource* /*seat*/, uint32_t /*serial*/,
 void mf::XdgSurfaceV6::set_notify_resize(std::function<void(geometry::Size const&, MirWindowState, bool)> notify_resize_)
 {
     notify_resize = notify_resize_;
-}
-
-void mf::XdgSurfaceV6::set_parent(optional_value<SurfaceId> parent_id)
-{
-    WindowWlSurfaceRole::set_parent(parent_id);
-}
-
-void mf::XdgSurfaceV6::set_max_size(int32_t width, int32_t height)
-{
-    WindowWlSurfaceRole::set_max_size(width, height);
-}
-
-void mf::XdgSurfaceV6::set_min_size(int32_t width, int32_t height)
-{
-    WindowWlSurfaceRole::set_min_size(width, height);
 }
 
 void mf::XdgSurfaceV6::clear_next_commit_action()
@@ -447,9 +416,9 @@ void mf::XdgToplevelV6::show_window_menu(struct wl_resource* seat, uint32_t seri
     // TODO
 }
 
-void mf::XdgToplevelV6::move(struct wl_resource* seat, uint32_t serial)
+void mf::XdgToplevelV6::move(struct wl_resource* /*seat*/, uint32_t /*serial*/)
 {
-    self->move(seat, serial);
+    self->initiate_interactive_move();
 }
 
 void mf::XdgToplevelV6::resize(struct wl_resource* seat, uint32_t serial, uint32_t edges)
