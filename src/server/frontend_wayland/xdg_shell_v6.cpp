@@ -65,8 +65,6 @@ public:
     void set_next_commit_action(std::function<void()> action);
     void clear_next_commit_action();
 
-    using WindowWlSurfaceRole::client;
-
     struct wl_resource* const parent;
     std::shared_ptr<Shell> const shell;
     std::function<void()> next_commit_action{[]{}};
@@ -190,7 +188,7 @@ void mf::XdgSurfaceV6::destroy()
 
 void mf::XdgSurfaceV6::get_toplevel(uint32_t id)
 {
-    new XdgToplevelV6{client, parent, id, shell, this};
+    new XdgToplevelV6{wayland::XdgSurfaceV6::client, parent, id, shell, this};
     become_surface_role();
 }
 
@@ -209,7 +207,7 @@ void mf::XdgSurfaceV6::get_popup(uint32_t id, struct wl_resource* parent, struct
 
     apply_spec(*specification);
 
-    new XdgPopupV6{client, parent, id, this};
+    new XdgPopupV6{wayland::XdgSurfaceV6::client, parent, id, this};
     become_surface_role();
 }
 
@@ -283,7 +281,7 @@ void mf::XdgSurfaceV6::set_next_commit_action(std::function<void()> action)
     next_commit_action = [this, action]
     {
         action();
-        auto const serial = wl_display_next_serial(wl_client_get_display(client));
+        auto const serial = wl_display_next_serial(wl_client_get_display(wayland::XdgSurfaceV6::client));
         zxdg_surface_v6_send_configure(resource, serial);
     };
 }
@@ -300,7 +298,7 @@ void mf::XdgSurfaceV6::handle_resize(geometry::Size const& new_size)
     auto const action = [notify_resize=notify_resize, new_size, state=window_state(), is_active=is_active()]
         { notify_resize(new_size, state, is_active); };
 
-    auto const serial = wl_display_next_serial(wl_client_get_display(client));
+    auto const serial = wl_display_next_serial(wl_client_get_display(wayland::XdgSurfaceV6::client));
     action();
     zxdg_surface_v6_send_configure(resource, serial);
 

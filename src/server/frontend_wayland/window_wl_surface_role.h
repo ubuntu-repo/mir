@@ -83,7 +83,6 @@ public:
 
 protected:
     std::shared_ptr<bool> const destroyed;
-    wl_client* const client;
 
     geometry::Size window_size();
     MirWindowState window_state();
@@ -93,6 +92,7 @@ protected:
     void commit(WlSurfaceState const& state) override;
 
 private:
+    wl_client* const client;
     WlSurface* const surface;
     std::shared_ptr<frontend::Shell> const shell;
     OutputManager* output_manager;
