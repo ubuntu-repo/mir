@@ -65,7 +65,6 @@ public:
     void set_next_commit_action(std::function<void()> action);
     void clear_next_commit_action();
 
-    struct wl_resource* const parent;
     std::function<void()> next_commit_action{[]{}};
     std::function<void(geometry::Size const& new_size, MirWindowState state, bool active)> notify_resize =
         [](auto, auto, auto){};
@@ -172,8 +171,7 @@ mf::XdgSurfaceV6* mf::XdgSurfaceV6::from(wl_resource* surface)
 mf::XdgSurfaceV6::XdgSurfaceV6(wl_client* client, wl_resource* parent, uint32_t id, WlSurface* surface,
                                std::shared_ptr<mf::Shell> const& shell, WlSeat& seat, OutputManager* output_manager)
     : wayland::XdgSurfaceV6(client, parent, id),
-      WindowWlSurfaceRole{&seat, client, surface, shell, output_manager},
-      parent{parent}
+      WindowWlSurfaceRole{&seat, client, surface, shell, output_manager}
 {
 }
 
@@ -184,7 +182,7 @@ void mf::XdgSurfaceV6::destroy()
 
 void mf::XdgSurfaceV6::get_toplevel(uint32_t id)
 {
-    new XdgToplevelV6{wayland::XdgSurfaceV6::client, parent, id, this};
+    new XdgToplevelV6{wayland::XdgSurfaceV6::client, resource, id, this};
     become_surface_role();
 }
 
