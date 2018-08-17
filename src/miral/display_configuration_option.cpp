@@ -23,10 +23,14 @@
 #include <mir/options/option.h>
 #include <mir/server.h>
 #include <mir_toolkit/mir_client_library.h>
-#include <iostream>
-#include <map>
 #include <mir/abnormal_exit.h>
 #include <mir/geometry/displacement.h>
+
+#define MIR_LOG_COMPONENT "miral"
+#include <mir/log.h>
+
+#include <iostream>
+#include <map>
 #include <fstream>
 #include <sstream>
 
@@ -77,7 +81,7 @@ void PixelFormatSelector::apply_to(mg::DisplayConfiguration& conf)
 {
     base_policy->apply_to(conf);
 
-    std::map<std::string, int> counts;
+//    std::map<std::string, int> counts;
 
     conf.for_each_output(
         [&](mg::UserDisplayConfigurationOutput& conf_output)
@@ -149,10 +153,10 @@ void PixelFormatSelector::apply_to(mg::DisplayConfiguration& conf)
 //            std::cout << "}" << std::endl;
 //            std::cout << "\\----------------------------------------------------------------------------/\n";
 
-            auto const type = mir_output_type_name(static_cast<MirOutputType>(conf_output.type));
-
-            std::cout << "Output:\tcard_id: " << conf_output.card_id << "\tid: " << conf_output.id
-                      << "\ttype: " << type << "\tcount: " << ++counts[type] << '\n';
+//            auto const type = mir_output_type_name(static_cast<MirOutputType>(conf_output.type));
+//
+//            std::cout << "Output:\tcard_id: " << conf_output.card_id << "\tid: " << conf_output.id
+//                      << "\ttype: " << type << "\tcount: " << ++counts[type] << '\n';
 
             if (!conf_output.connected || !conf_output.used) return;
 
@@ -184,6 +188,8 @@ private:
     using Id = std::tuple<mg::DisplayConfigurationCardId, mg::DisplayConfigurationOutputId>;
     struct Config { mir::optional_value<Point> position; mir::optional_value<Size> size; };
 
+    static constexpr char const* const output_id = "output_id";
+
     std::map<Id, Config> config;
 };
 
@@ -201,37 +207,39 @@ size_t select_mode_index(size_t mode_index, std::vector<mg::DisplayConfiguration
 
 StaticDisplayConfigurationPolicy::StaticDisplayConfigurationPolicy(std::string const& filename)
 {
-    static auto const output_id = "output_id=";
-
     std::ifstream config_file{filename};
 
     if (!config_file)
-        throw mir::AbnormalExit{"ERROR: Cannot read static display configuration file: '" + filename + "'"};
+    {
+        mir::log_warning("Cannot read static display configuration file: '" + filename + "'");
+        return;
+    }
 
     int line_count = 0;
     std::string line;
+    std::istringstream in;
+
     while (std::getline(config_file, line))
     {
         ++line_count;
 
-        puts(line.c_str());
-
         // Strip trailing comment
         line.erase(find(begin(line), end(line), '#'), end(line));
-
-        puts(line.c_str());
 
         // Ignore blank lines
         if (line.empty())
             continue;
 
-        if (line.compare(0, strlen(output_id), output_id) != 0)
-            goto error;
-
-        line.erase(0, strlen(output_id));
-
-        std::istringstream in{line};
+        in = std::istringstream{line};
         in.setf(std::ios::skipws);
+
+        std::string property;
+
+        in >> std::ws;
+        std::getline(in, property, '=');
+
+        if (property != output_id)
+            goto error;
 
         int card_no = -1;
         int port_no = -1;
@@ -252,12 +260,8 @@ StaticDisplayConfigurationPolicy::StaticDisplayConfigurationPolicy(std::string c
         if (in >> delimiter && delimiter != ':')
             goto error;
 
-        in >> std::ws;
-        std::string property;
-        while (std::getline(in, property, '='))
+        while (in >> std::ws, std::getline(in, property, '='))
         {
-            puts(property.c_str());
-
             if (property == "position")
             {
                 int x;
@@ -292,10 +296,8 @@ StaticDisplayConfigurationPolicy::StaticDisplayConfigurationPolicy(std::string c
             }
             else goto error;
 
-            if (in >> delimiter && delimiter != ';')
+            if (in >> std::ws, in >> delimiter && delimiter != ';')
                 goto error;
-
-            in >> std::ws;
         }
 
         config[output_id] = output_config;
@@ -304,12 +306,18 @@ StaticDisplayConfigurationPolicy::StaticDisplayConfigurationPolicy(std::string c
     return;
 
 error:
+    std::string error;
+    getline(in, error);
     throw mir::AbnormalExit{"ERROR: Syntax error in display configuration file: '" + filename +
-                            "' line: " + std::to_string(line_count)};
+                            "' line: " + std::to_string(line_count) +
+                            " before: " + error + "'"};
 }
 
 void StaticDisplayConfigurationPolicy::apply_to(mg::DisplayConfiguration& conf)
 {
+    std::ostringstream out;
+    out << "Display config:\n8>< ---------------------------------------------------";
+
     conf.for_each_output([&](mg::UserDisplayConfigurationOutput& conf_output)
         {
             if (conf_output.connected && conf_output.modes.size() > 0)
@@ -352,7 +360,37 @@ void StaticDisplayConfigurationPolicy::apply_to(mg::DisplayConfiguration& conf)
                 conf_output.used = false;
                 conf_output.power_mode = mir_power_mode_off;
             }
+
+             auto const type = mir_output_type_name(static_cast<MirOutputType>(conf_output.type));
+
+             out << '\n' << output_id << '=' << conf_output.card_id << '/' << conf_output.id;
+
+             if (conf_output.connected && conf_output.modes.size() > 0)
+             {
+                 auto const& top_left = conf_output.top_left;
+                 auto const& size = conf_output.modes[conf_output.current_mode_index].size;
+                 out << ": " << "position=" << top_left.x << ',' << top_left.y
+                           << "; " << "size="<< size.width << 'x' << size.height;
+             }
+
+             out << " # " << type;
+
+             if (!conf_output.connected || conf_output.modes.size() <= 0)
+                 out << " (disconnected)";
+
+             if (conf_output.modes.size() > 0)
+             {
+                 out << " modes: ";
+                 for (size_t i = 0; i < conf_output.modes.size(); ++i)
+                 {
+                     if (i) out << ", ";
+                     out << conf_output.modes[i];
+                 }
+             }
         });
+
+    out << "\n8>< ---------------------------------------------------";
+    mir::log_info(out.str());
 }
 
 void miral::display_configuration_options(mir::Server& server)
