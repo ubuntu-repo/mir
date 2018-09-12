@@ -99,6 +99,11 @@ std::shared_ptr<mf::Connector>
             if (options->is_set(options::wayland_socket_name_opt))
                 display_name = options->get<std::string>(options::wayland_socket_name_opt);
 
+            optional_value<int> display_fd;
+
+            if (options->is_set(options::wayland_socket_fd_opt))
+                display_fd = options->get<int>(options::wayland_socket_fd_opt);
+
             auto const wayland_extensions =
                 options->get(mo::wayland_extensions_opt, mo::wayland_extensions_value);
 
@@ -107,6 +112,7 @@ std::shared_ptr<mf::Connector>
                 the_display_configuration_observer_registrar());
 
             return std::make_shared<mf::WaylandConnector>(
+                display_fd,
                 display_name,
                 the_frontend_shell(),
                 display_config,

@@ -188,7 +188,7 @@ MIR_PLATFORM_0.33 {
   };
 } MIR_PLATFORM_0.32;
 
-MIR_PLATFORM_0.32.3 {
+MIR_PLATFORM_0.32.2 {
  global:
   extern "C++" {
     mir::options::auto_console;
@@ -198,6 +198,7 @@ MIR_PLATFORM_0.32.3 {
     mir::options::vt_console;
     mir::options::wayland_extensions_opt;
     mir::options::wayland_extensions_value;
+    mir::options::wayland_socket_fd_opt;
     mir::options::x11_display_opt;
   };
 } MIR_PLATFORM_0.33;

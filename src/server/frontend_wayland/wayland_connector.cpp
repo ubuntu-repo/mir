@@ -239,6 +239,7 @@ std::shared_ptr<mf::BufferStream> create_buffer_stream(mf::Session& session)
 }
 */
 }
+namespace mf = mir::frontend;
 
 std::shared_ptr<mir::frontend::Session> get_session(wl_client* client)
 {
@@ -582,6 +583,7 @@ auto mir::frontend::WaylandExtensions::get_extension(std::string const& name) co
 }
 
 mf::WaylandConnector::WaylandConnector(
+    optional_value<int> const& display_fd,
     optional_value<std::string> const& display_name,
     std::shared_ptr<mf::Shell> const& shell,
     std::shared_ptr<MirDisplay> const& display_config,
@@ -638,16 +640,23 @@ mf::WaylandConnector::WaylandConnector(
 
     char const* wayland_display = nullptr;
 
-    if (!display_name.is_set())
+    if (display_fd.is_set())
     {
-        wayland_display = wl_display_add_socket_auto(display.get());
+        if (auto error = wl_display_add_socket_fd(display.get(), display_fd.value()))
+        {
+            fatal_error("Error %d adding Wayland socket fd (%d)", error, display_fd.value());
+        }
     }
-    else
+    else if (display_name.is_set())
     {
         if (!wl_display_add_socket(display.get(), display_name.value().c_str()))
         {
             wayland_display = display_name.value().c_str();
         }
+    }
+    else
+    {
+        wayland_display = wl_display_add_socket_auto(display.get());
     }
 
     if (wayland_display)
