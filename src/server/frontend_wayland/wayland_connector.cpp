@@ -642,9 +642,9 @@ mf::WaylandConnector::WaylandConnector(
 
     if (display_fd.is_set())
     {
-        if (auto error = wl_display_add_socket_fd(display.get(), display_fd.value()))
+        if (wl_display_add_socket_fd(display.get(), display_fd.value()))
         {
-            fatal_error("Error %d adding Wayland socket fd (%d)", error, display_fd.value());
+            fatal_error("Error adding Wayland socket fd (%d)", display_fd.value());
         }
     }
     else if (display_name.is_set())
