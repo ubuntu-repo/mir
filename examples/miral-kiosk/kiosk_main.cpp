@@ -26,14 +26,18 @@
 #include <miral/set_window_management_policy.h>
 #include <miral/internal_client.h>
 
+#include <systemd/sd-daemon.h>
+
 #include <unistd.h>
 #include <atomic>
+#include <sstream>
+#include <stdlib.h>
 
 namespace
 {
 struct KioskAuthorizer : miral::ApplicationAuthorizer
 {
-    KioskAuthorizer(std::shared_ptr<SplashSession> const& splash) : splash{splash}{}
+    KioskAuthorizer(std::shared_ptr<SplashSession> const& splash) : splash{splash} {}
 
     virtual bool connection_is_allowed(miral::ApplicationCredentials const& creds) override
     {
@@ -78,10 +82,26 @@ struct KioskAuthorizer : miral::ApplicationAuthorizer
 };
 
 std::atomic<bool> KioskAuthorizer::startup_only{false};
+
+void get_activation_socket()
+{
+    if (sd_listen_fds(0) == 1)
+    {
+        auto const fd = SD_LISTEN_FDS_START + 0;
+
+        std::ostringstream out;
+
+        out << fd;
+
+        printf("******* setting MIR_SERVER_WAYLAND_SOCKET_FD=%d\n", fd);
+        setenv("MIR_SERVER_WAYLAND_SOCKET_FD", out.str().c_str(), 1);
+    }
+}
 }
 
 int main(int argc, char const* argv[])
 {
+    get_activation_socket();
     using namespace miral;
 
     SwSplash splash;
