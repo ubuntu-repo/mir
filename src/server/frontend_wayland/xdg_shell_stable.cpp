@@ -523,40 +523,40 @@ void mf::XdgPositionerStable::set_anchor(uint32_t anchor)
 
     switch (anchor)
     {
-        case Anchor::top:
-            placement = mir_placement_gravity_north;
-            break;
+    case Anchor::top:
+        placement = mir_placement_gravity_north;
+        break;
 
-        case Anchor::bottom:
-            placement = mir_placement_gravity_south;
-            break;
+    case Anchor::bottom:
+        placement = mir_placement_gravity_south;
+        break;
 
-        case Anchor::left:
-            placement = mir_placement_gravity_west;
-            break;
+    case Anchor::left:
+        placement = mir_placement_gravity_west;
+        break;
 
-        case Anchor::right:
-            placement = mir_placement_gravity_east;
-            break;
+    case Anchor::right:
+        placement = mir_placement_gravity_east;
+        break;
 
-        case Anchor::top_left:
-            placement = mir_placement_gravity_northwest;
-            break;
+    case Anchor::top_left:
+        placement = mir_placement_gravity_northwest;
+        break;
 
-        case Anchor::bottom_left:
-            placement = mir_placement_gravity_southwest;
-            break;
+    case Anchor::bottom_left:
+        placement = mir_placement_gravity_southwest;
+        break;
 
-        case Anchor::top_right:
-            placement = mir_placement_gravity_northeast;
-            break;
+    case Anchor::top_right:
+        placement = mir_placement_gravity_northeast;
+        break;
 
-        case Anchor::bottom_right:
-            placement = mir_placement_gravity_southeast;
-            break;
+    case Anchor::bottom_right:
+        placement = mir_placement_gravity_southeast;
+        break;
 
-        default:
-            placement = mir_placement_gravity_center;
+    default:
+        placement = mir_placement_gravity_center;
     }
 
     aux_rect_placement_gravity = placement;
@@ -568,40 +568,40 @@ void mf::XdgPositionerStable::set_gravity(uint32_t gravity)
 
     switch (gravity)
     {
-        case Gravity::top:
-            placement = mir_placement_gravity_south;
-            break;
+    case Gravity::top:
+        placement = mir_placement_gravity_south;
+        break;
 
-        case Gravity::bottom:
-            placement = mir_placement_gravity_north;
-            break;
+    case Gravity::bottom:
+        placement = mir_placement_gravity_north;
+        break;
 
-        case Gravity::left:
-            placement = mir_placement_gravity_east;
-            break;
+    case Gravity::left:
+        placement = mir_placement_gravity_east;
+        break;
 
-        case Gravity::right:
-            placement = mir_placement_gravity_west;
-            break;
+    case Gravity::right:
+        placement = mir_placement_gravity_west;
+        break;
 
-        case Gravity::top_left:
-            placement = mir_placement_gravity_southeast;
-            break;
+    case Gravity::top_left:
+        placement = mir_placement_gravity_southeast;
+        break;
 
-        case Gravity::bottom_left:
-            placement = mir_placement_gravity_northeast;
-            break;
+    case Gravity::bottom_left:
+        placement = mir_placement_gravity_northeast;
+        break;
 
-        case Gravity::top_right:
-            placement = mir_placement_gravity_southwest;
-            break;
+    case Gravity::top_right:
+        placement = mir_placement_gravity_southwest;
+        break;
 
-        case Gravity::bottom_right:
-            placement = mir_placement_gravity_northwest;
-            break;
+    case Gravity::bottom_right:
+        placement = mir_placement_gravity_northwest;
+        break;
 
-        default:
-            placement = mir_placement_gravity_center;
+    default:
+        placement = mir_placement_gravity_center;
     }
 
     surface_placement_gravity = placement;
