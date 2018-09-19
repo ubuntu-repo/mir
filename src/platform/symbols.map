@@ -149,7 +149,7 @@ MIRPLATFORM_0.27 {
 
     mir::graphics::AtomicFrame::load*;
     mir::graphics::AtomicFrame::store*;
-    mir::graphics::AtomicFrame::increment*
+    mir::graphics::AtomicFrame::increment*;
   };
  local: *;
 };
