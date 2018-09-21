@@ -66,17 +66,11 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -g -Wall -pedantic -Wextra -fPIC")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -g -std=c++14 -Wall -fno-strict-aliasing -pedantic -Wnon-virtual-dtor -Wextra -fPIC")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -g -Werror -Wall -pedantic -Wextra -fPIC")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -g -std=c++14 -Werror -Wall -fno-strict-aliasing -pedantic -Wnon-virtual-dtor -Wextra -fPIC")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--as-needed")
 set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--as-needed")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--as-needed")
-
-set(MIR_FATAL_COMPILE_WARNINGS ON CACHE BOOL "Should compiler warnings fail the build")
-if(MIR_FATAL_COMPILE_WARNINGS)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
-endif()
 
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag(-Wmismatched-tags HAS_W_MISMATCHED_TAGS)
@@ -239,14 +233,6 @@ endif()
 list(GET MIR_PLATFORM 0 MIR_TEST_PLATFORM)
 
 option(MIR_ENABLE_TESTS "Build tests" ON)
-CMAKE_DEPENDENT_OPTION(
-  MIR_ENABLE_WLCS_TESTS "Also Build WLCS tests" ON
-  "MIR_ENABLE_TESTS" OFF
-)
-
-if (MIR_ENABLE_WLCS_TESTS)
-  pkg_check_modules(WLCS REQUIRED wlcs)
-endif()
 
 foreach(platform IN LISTS MIR_PLATFORM)
   if (platform STREQUAL "mesa-kms")
@@ -380,10 +366,10 @@ if (MIR_ENABLE_TESTS)
 
   # There's no nice way to format this. Thanks CMake.
   mir_add_test(NAME LGPL-required
-    COMMAND /bin/sh -c "! grep -rl --exclude-dir=protocol 'GNU General' ${PROJECT_SOURCE_DIR}/src/client ${PROJECT_SOURCE_DIR}/include/client ${PROJECT_SOURCE_DIR}/src/core ${PROJECT_SOURCE_DIR}/include/core ${PROJECT_SOURCE_DIR}/src/common ${PROJECT_SOURCE_DIR}/include/common ${PROJECT_SOURCE_DIR}/src/include/common ${PROJECT_SOURCE_DIR}/src/platform ${PROJECT_SOURCE_DIR}/include/platform ${PROJECT_SOURCE_DIR}/src/include/platform ${PROJECT_SOURCE_DIR}/src/platforms ${PROJECT_SOURCE_DIR}/include/platforms ${PROJECT_SOURCE_DIR}/src/include/platforms ${PROJECT_SOURCE_DIR}/src/renderers ${PROJECT_SOURCE_DIR}/include/renderers ${PROJECT_SOURCE_DIR}/src/include/renderers ${PROJECT_SOURCE_DIR}/src/capnproto"
+    COMMAND /bin/sh -c "! grep -rl --exclude-dir=wlcs 'GNU General' ${PROJECT_SOURCE_DIR}/src/client ${PROJECT_SOURCE_DIR}/include/client ${PROJECT_SOURCE_DIR}/src/core ${PROJECT_SOURCE_DIR}/include/core ${PROJECT_SOURCE_DIR}/src/common ${PROJECT_SOURCE_DIR}/include/common ${PROJECT_SOURCE_DIR}/src/include/common ${PROJECT_SOURCE_DIR}/src/platform ${PROJECT_SOURCE_DIR}/include/platform ${PROJECT_SOURCE_DIR}/src/include/platform ${PROJECT_SOURCE_DIR}/src/platforms ${PROJECT_SOURCE_DIR}/include/platforms ${PROJECT_SOURCE_DIR}/src/include/platforms ${PROJECT_SOURCE_DIR}/src/renderers ${PROJECT_SOURCE_DIR}/include/renderers ${PROJECT_SOURCE_DIR}/src/include/renderers ${PROJECT_SOURCE_DIR}/src/capnproto"
   )
   mir_add_test(NAME GPL-required
-    COMMAND /bin/sh -c "! grep -rl --exclude-dir=protocol 'GNU Lesser' ${PROJECT_SOURCE_DIR}/src/server ${PROJECT_SOURCE_DIR}/include/server ${PROJECT_SOURCE_DIR}/src/include/server ${PROJECT_SOURCE_DIR}/tests ${PROJECT_SOURCE_DIR}/examples"
+    COMMAND /bin/sh -c "! grep -rl --exclude-dir=wlcs 'GNU Lesser' ${PROJECT_SOURCE_DIR}/src/server ${PROJECT_SOURCE_DIR}/include/server ${PROJECT_SOURCE_DIR}/src/include/server ${PROJECT_SOURCE_DIR}/tests ${PROJECT_SOURCE_DIR}/examples"
   )
 
   mir_add_test(NAME package-abis
