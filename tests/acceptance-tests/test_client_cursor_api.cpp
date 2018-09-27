@@ -789,7 +789,7 @@ TEST_F(ClientCursor, passes_through_nested_server)
         mt::Signal wait;
 
         EXPECT_CALL(*mock_surface_observer, cursor_image_removed(_))
-            .Times(1)
+            .Times(AtLeast(1))
             .WillOnce(mt::WakeUp(&wait));
 
         client.configure_cursor();
