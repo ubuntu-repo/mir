@@ -614,6 +614,9 @@ WlcsDisplayServer* wlcs_create_server(int argc, char const** argv)
                                 wrapped->cursor_moved_to(abs_x, abs_y);
                             }
 
+                            void pointer_usable() { wrapped->pointer_usable(); }
+                            void pointer_unusable() { wrapped->pointer_unusable(); }
+
                         private:
                             MirWlcsDisplayServer* const runner;
                             std::shared_ptr<mir::input::CursorListener> const wrapped;
