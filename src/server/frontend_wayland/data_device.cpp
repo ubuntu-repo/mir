@@ -71,10 +71,7 @@ public:
 
     void destroy() override;
 
-    void set_actions(uint32_t dnd_actions) override
-    {
-        (void)dnd_actions;
-    }
+    void set_actions(uint32_t dnd_actions) override;
 
     void send_cancelled() const
     {
@@ -89,6 +86,7 @@ public:
     DataDeviceManager* const manager; // Actually, this probably needs to be a listener list?
     std::vector<DataOffer*> listeners;
     std::vector<std::string> mime_types;
+    std::experimental::optional<uint32_t> dnd_actions;
 
     void send_send(std::string const& mime_type, mir::Fd fd);
 };
@@ -100,10 +98,7 @@ struct DataDevice : mf::wayland::DataDevice, mf::WlSeat::ListenerTracker
 
     void start_drag(
         std::experimental::optional<struct wl_resource*> const& source, struct wl_resource* origin,
-        std::experimental::optional<struct wl_resource*> const& icon, uint32_t serial) override
-    {
-        (void)source, (void)origin, (void)icon, (void)serial;
-    }
+        std::experimental::optional<struct wl_resource*> const& icon, uint32_t serial) override;
 
     void set_selection(std::experimental::optional<struct wl_resource*> const& source, uint32_t serial) override
     {
@@ -162,6 +157,11 @@ void DataSource::destroy()
     destroyed = true;
     manager->notify_destroyed(this);
     destroy_wayland_object();
+}
+
+void DataSource::set_actions(uint32_t dnd_actions)
+{
+    this->dnd_actions = dnd_actions;
 }
 
 void DataSource::add_listener(DataOffer* listener)
@@ -248,6 +248,34 @@ DataDevice::~DataDevice()
 {
     manager->remove_listener(this);
     seat->remove_focus_listener(this);
+}
+
+void DataDevice::start_drag(
+    std::experimental::optional<struct wl_resource*> const& source, struct wl_resource* /*origin*/,
+    std::experimental::optional<struct wl_resource*> const& /*icon*/, uint32_t /*serial*/)
+{
+    if (source)
+    {
+        auto* const data_source = DataSource::from(*source);
+
+        if (data_source != current_source)
+        {
+            puts("========================> source != current_source");
+            return;
+        }
+
+        puts("========================> source == current_source");
+        // TOOO we need to create an offer for originating client and send enter.
+        // TOOO Then we need to start handling cursor events to send move, leave and enter events.
+    }
+    else
+    {
+        // TODO If source is NULL, enter, leave
+        //	and motion events are sent only to the client that initiated the
+        //	drag and the client is expected to handle the data passing
+        //	internally
+    }
+
 }
 
 void DataDevice::notify_new(DataSource* source)
