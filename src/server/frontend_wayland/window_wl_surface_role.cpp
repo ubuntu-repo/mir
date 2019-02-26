@@ -274,7 +274,7 @@ void mf::WindowWlSurfaceRole::commit(WlSurfaceState const& state)
 
     auto const session = get_session(client);
 
-    if (surface_id_.as_value())
+    if (surface_id_.as_value() && window_size() != geom::Size{})
     {
         auto const scene_surface = scene_surface_from(session, surface_id_);
 
