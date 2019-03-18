@@ -54,7 +54,14 @@ public:
 private:
     void set_window_role(WindowWlSurfaceRole* role);
 
+    struct InflightConfigure
+    {
+        uint32_t serial;
+        bool send_another_when_acked;
+    };
+
     std::experimental::optional<WindowWlSurfaceRole*> window_role_;
+    std::experimental::optional<InflightConfigure> inflight_configure;
     std::shared_ptr<bool> window_role_destroyed;
     WlSurface* const surface;
 
@@ -208,14 +215,39 @@ void mf::XdgSurfaceV6::set_window_geometry(int32_t x, int32_t y, int32_t width, 
 
 void mf::XdgSurfaceV6::ack_configure(uint32_t serial)
 {
-    (void)serial;
-    // TODO
+    if (!inflight_configure)
+    {
+        log_warning("Got unexpected xdg_surface.ack_configure(%d) request", serial);
+        return;
+    }
+
+    if (inflight_configure.value().serial != serial)
+    {
+        log_warning(
+            "Got inflight_configure.ack_configure(%d), but expected serial %d",
+            inflight_configure.value().serial,
+            serial);
+        return;
+    }
+
+    bool const send_another = inflight_configure.value().send_another_when_acked;
+    inflight_configure = std::experimental::nullopt; // must go before send_configure()
+    if (send_another)
+        send_configure();
 }
 
 void mf::XdgSurfaceV6::send_configure()
 {
-    auto const serial = wl_display_next_serial(wl_client_get_display(wayland::XdgSurfaceV6::client));
-    send_configure_event(serial);
+    if (inflight_configure)
+    {
+        inflight_configure.value().send_another_when_acked = true;
+    }
+    else
+    {
+        auto const serial = wl_display_next_serial(wl_client_get_display(wayland::XdgSurfaceV6::client));
+        inflight_configure = std::experimental::make_optional(InflightConfigure{serial, false});
+        send_configure_event(serial);
+    }
 }
 
 std::experimental::optional<mf::WindowWlSurfaceRole*> const& mf::XdgSurfaceV6::window_role()
